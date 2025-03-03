@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>administration</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.7.1.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background: #f7f7f7;
+            padding: 15px 20px;
+            border-bottom: 4px solid #388E3C;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        #search{
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #search-input {
+            width: 400px;
+            padding: 6px;
+            font-size: 16px;
+            border-radius: 16px;
+        }
+
+        #signOut {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border: 1px solid black;
+        }
+
+       #signOut:hover {
+            background-color: #e8e8e8;
+        }
+
+       main {
+            padding: 20px;
+       }
+
+        .post {
+            background: white;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+        }
+
+        .p_username {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+
+        .post-title {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .post-text {
+            margin-bottom: 10px;
+        }
+
+        .post-time {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .hide{
+            background: white;
+            width: 100%;
+            border: none;
+        }
+        .hide:hover{
+            background: #ddd;
+        }
+
+        .commentButton{
+            border: none;
+            display: inline;
+            position: relative;
+            padding: 11px;
+            bottom: 15px;
+            background: #5cdd60d7;
+            border-radius: 5px;
+            margin-left: 6px;
+        }
+        .commentButton:hover{
+            background-color: #64c467;
+            cursor: pointer;
+        }
+
+        textarea{
+            width: 90%;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            padding:10px;
+            resize: none;
+        }
+
+        .comments {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .comment {
+            margin-bottom: 10px;
+        }
+
+        .c_username {
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .comment-text {
+            font-size: 1rem;
+            color: #404040;
+        }
+
+        .comment-time {
+            font-size: 0.8rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .deletePost {
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .deletePost:hover {
+            background-color: #ff7875;
+        }
+
+        .deleteComment{
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .deleteComment:hover{
+            background-color: #ff7875;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <div id="search">
+        <input type="text" id="search-input" placeholder="搜索id或邮箱">
+        <input type="button" id="search-button" value='查询'>
+    </div>
+    <a href="signOut" id="signOut">登出</a>
+</header>
+<main>
+    <div id="content">
+
+    </div>
+</main>
+<script>
+    $(document).ready(function(){
+        //Get请求获取帖子数据
+        $.get("/MessageBoard/printMessages", function(data){
+            let posts = data.posts;
+            const content = document.getElementById("content");
+            content.innerHTML = "";
+
+            posts.forEach( post => {
+                const id =post.id;
+
+                const postDiv = document.createElement("div");
+                postDiv.className = "post";
+                postDiv.id = "post"+id;
+
+                const p_username = document.createElement("a");
+                p_username.className = "p_username";
+                p_username.textContent = post.userName+"#"+post.userId;
+                p_username.href = "./ad_homePage.html?id="+post.userId;
+
+                const title = document.createElement("div");
+                title.className = "post-title";
+                title.textContent = post.title;
+
+                const text = document.createElement("div");
+                text.className = "post-text";
+                text.textContent = post.text;
+
+                const time = document.createElement("div");
+                time.className = "post-time";
+                time.textContent = new Date(post.time).toLocaleDateString();
+
+                const commentsDiv = document.createElement("div");
+                commentsDiv.className = "comments";
+                commentsDiv.id = "comments" + post.id;
+
+                const deletePost  = document.createElement("button");
+                deletePost.textContent = "删除";
+                deletePost.className = "deletePost";
+                deletePost.id = "deletePost" + id;
+                title.appendChild(deletePost);
+
+                postDiv.appendChild(p_username);
+                postDiv.appendChild(title);
+                postDiv.appendChild(text);
+                postDiv.appendChild(time);
+
+                //折叠评论按钮
+                let hideButton = document.createElement("button");
+                hideButton.className = "hide";
+                hideButton.id = "hide" + id;
+                hideButton.textContent = "评论";
+                postDiv.appendChild(hideButton);
+
+                if (post.comments.length > 0) {
+
+                    post.comments.forEach(comment => {
+                        let commentId = comment.id;
+
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment';
+                        commentDiv.id = 'comment' + commentId;
+
+                        const c_username = document.createElement("a");
+                        c_username.className = "c_username";
+                        c_username.textContent = "#"+comment.userId;
+                        c_username.href = "./ad_homePage.html?id="+comment.userId;
+
+                        const commentText = document.createElement('div');
+                        commentText.className = 'comment-text';
+                        commentText.textContent = comment.text;
+
+                        const commentTime = document.createElement('div');
+                        commentTime.className = 'comment-time';
+                        commentTime.textContent = new Date(comment.time).toLocaleDateString();
+
+                        commentDiv.appendChild(c_username);
+                        commentDiv.appendChild(commentText);
+                        commentDiv.appendChild(commentTime);
+                        commentsDiv.appendChild(commentDiv);
+
+                        //删除评论
+                        const deleteComment  = document.createElement("button");
+                        deleteComment.textContent = "删除";
+                        deleteComment.className = "deleteComment";
+                        deleteComment.id = "deleteComment" + commentId;
+                        commentTime.appendChild(deleteComment);
+                    });
+                }
+
+                postDiv.appendChild(commentsDiv);
+                content.appendChild(postDiv);
+
+                //默认隐藏评论，设置折叠
+                $("#comments" + post.id).hide();
+                $("#hide"+post.id).click(function (){
+                    $("#comments" + post.id).toggle(70);
+                })
+
+                //删除帖
+                $("#deletePost" + id).click(function (){
+                    if(confirm("确认要删除该帖？")){
+                        $.post("/MessageBoard/deletePost",
+                            {
+                                postId: id
+                            }, function (data){
+                                if(data === 'true')
+                                    $("#post" + id).remove();
+                                else
+                                    alert('失败');
+                            })
+                    }
+                })
+            });
+        })
+
+        //删除评论事件
+        $(document).on("click", ".deleteComment", function () {
+            const commentId = $(this).attr("id").replace("deleteComment", ""); // 获取评论ID
+            if (confirm("确定要删除该评论吗？")) {
+                $.post("/MessageBoard/deleteComment",
+                    {
+                        commentId: commentId
+                    }, function (data) {
+                        if (data === "success") {
+                            $("#comment" + commentId).remove()
+                        } else {
+                            alert("删除失败，请稍后重试！");
+                        }
+                    });
+            }
+        });
+
+        //搜索事件
+        $("#search-button").click(function (){
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            let param = $("#search-input").val();
+
+            if(param.trim().length > 0){
+                if (emailPattern.test(param)) {
+                    window.location.href = ("ad_homePage.html?email=" + param);
+                }else{
+                    window.location.href = ("ad_homePage.html?id=" + param)
+                }
+            }
+        })
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发帖</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.7.1.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        a{
+            text-decoration: none;
+            color: #000;
+        }
+        a:hover{
+            cursor: pointer;
+        }
+
+        main{
+            padding: 30px 20px;
+            border-radius: 10px;
+            box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.1);
+            width: 40%;
+        }
+
+        table{
+            width: 100%;
+        }
+        td {
+            padding: 7px;
+        }
+        .header {
+            text-align: right;
+            color: #333;
+            font-weight: bold;
+            width: 16%;
+        }
+        input{
+            width: calc(100% - 30px);
+            padding: 6px;
+            font-size: 16px;
+        }
+        textarea{
+            width: calc(100% - 30px);
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            resize: none;
+        }
+
+        #feedback{
+            text-align: center;
+            font-size: 12px;
+        }
+
+        #post{
+            text-align: center;
+            margin-left:17%;
+            padding: 8px 15px 8px 15px;
+            color:#f7f7f7;
+            background-color:#388E3C ;
+            border-radius: 5px;
+            border:none;
+        }
+        a:hover{
+            color: red;
+        }
+    </style>
+</head>
+<header></header>
+<body>
+<main>
+    <table>
+        <tr>
+            <td><a href="./messageboard.html"> &lt-返回</a></td>
+        </tr>
+        <tr>
+            <td class="header">标题：</td>
+            <td><input type="text" id="title" placeholder="标题不能为空"></td>
+        </tr>
+        <tr>
+            <td class="header">内容：</td>
+            <td><textarea id="text" rows="10" maxlength="500" placeholder="(不得超过250个字)" required></textarea></td>
+        </tr>
+    </table>
+    <div id="feedback"></div>
+    <button id="post">发布</button>
+</main>
+<script>
+    $('#post').click(function (){
+        $.post("/MessageBoard/addPost",
+            {
+                title: $('#title').val(),
+                text: $('#text').val()
+            }, function (data){
+                if(data == 'success'){
+                    $('#feedback').text("发布成功");
+                    $('#feedback').css("color","green");
+                    setTimeout(function (){
+                        window.location.href = "./messageboard.html"
+                    }, 1000)
+                }else{
+                    $('#feedback').text("发布失败");
+                    $('#feedback').css("color","red");
+                }
+            })
+    })
+</script>
+</body>
+</html>

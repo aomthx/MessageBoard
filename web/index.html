@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.7.1.js"></script>
+</head>
+<style>
+    /* 全局样式 */
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        background-color: #f7f7f7;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    /* 表单容器 */
+    form {
+        padding: 30px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+    }
+    table {
+        width: 100%;
+    }
+    td {
+        padding: 10px;
+    }
+    .header {
+        text-align: right;
+        color: #333;
+        font-weight: bold;
+        width: 20%;
+    }
+    #email, #password {
+        width: calc(100% - 30px);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    #codeInput {
+        width: 40%;
+        font-size: 16px;
+    }
+    /* 按钮样式 */
+    input#login, button#register {
+        width: 100%;
+        padding: 10px 15px;
+        margin: 10px 0;
+        font-size: 16px;
+        color: white;
+        border: none;
+    }
+    input#login {
+        background: #2196F3;
+    }
+    input#login:hover {
+        background: #1976D2;
+    }
+    #register {
+        background: #2196F3;
+    }
+    #register:hover {
+        background: #1976D2;
+    }
+    #adm{
+        position: absolute;
+        bottom: 10%;
+        right: 0;
+        text-decoration: none;
+        color: white;
+        background: rgb(34, 131, 148);
+        padding: 4px;
+    }
+</style>
+<body>
+<form id="loginForm">
+    <table>
+        <tr>
+            <td class="header">邮箱:</td>
+            <td>
+                <input type="text" id="email" name="email" placeholder="请输入邮箱">
+            </td>
+        </tr>
+        <tr>
+            <td class="header">密码:</td>
+            <td>
+                <input type="password" id="password" name="password" placeholder="请输入用户密码">
+            </td>
+        </tr>
+        <tr>
+            <td class="header">验证码:</td>
+            <td>
+                <input type="text" id="codeInput" name="code">
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><img id="code" src="/MessageBoard/createCode?"/></td>
+        </tr>
+
+    </table>
+    <a href="resetPassword.html" id="forget">忘记密码</a><br>
+    <input type="submit" id="login" value="登录">
+    <button id="register">注册</button>
+</form>
+<a href="login.html" id="adm">管<br>理<br>员</a>
+<script>
+    //点击刷新验证码
+    const image = document.getElementById('code');
+    image.addEventListener('click' ,function (){
+        image.src += new Date().getTime();
+    })
+    $(document).ready(
+        $('#loginForm').submit(function(ev){
+            ev.preventDefault();
+            $.post('/MessageBoard/login',
+                {
+                    email: $('#email').val(),
+                    password: $('#password').val(),
+                    code: $('#codeInput').val()
+                }, function (data){
+                    if(data === 'success'){
+                        window.location.href = "messageboard.html";
+                    }else
+                        alert(data);
+                })
+        })
+    )
+
+    $('#register').click(function (){
+        window.location.href = "register.html";
+    })
+</script>
+</body>
+</html>

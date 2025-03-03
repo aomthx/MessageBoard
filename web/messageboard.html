@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>墙</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.7.1.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background: #f7f7f7;
+            padding: 15px 20px;
+            border-bottom: 4px solid #388E3C;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        #search{
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #search-input {
+            width: 400px;
+            padding: 6px;
+            font-size: 16px;
+            border-radius: 16px;
+        }
+        #writePost{
+            padding: 8px 15px 8px 15px;
+            margin-right: 10px;
+        }
+        #user-name-label {
+            position: relative;
+            display: inline-block;
+            font-weight: bold;
+            line-height: 40px;
+            padding: 0 10px 0 10px;
+            border-left: 3px solid #4CAF50;
+        }
+
+        #user-name-label:hover{
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown:hover #user-name-label {
+            background-color: #e8e8e8;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        .post {
+            background: white;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+        }
+
+        .post-title {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .post-text {
+            margin-bottom: 10px;
+        }
+
+        .post-time {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .hide{
+            background: white;
+            width: 100%;
+            border: none;
+        }
+        .hide:hover{
+            background: #ddd;
+        }
+
+        .commentButton{
+            border: none;
+            display: inline;
+            position: relative;
+            padding: 11px;
+            bottom: 15px;
+            background: #5cdd60d7;
+            border-radius: 5px;
+            margin-left: 6px;
+        }
+        .commentButton:hover{
+            background-color: #64c467;
+            cursor: pointer;
+        }
+
+        textarea{
+            width: 90%;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            padding:10px;
+            resize: none;
+        }
+
+        .comments {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .comment {
+            margin-bottom: 10px;
+        }
+
+        .comment-text {
+            font-size: 1rem;
+            color: #404040;
+        }
+
+        .comment-time {
+            font-size: 0.8rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .deleteComment{
+            background: none;
+            border: none;
+            color: #828282
+        }
+        .deleteComment:hover{
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div id="search">
+        <input type="text" id="search-input" placeholder="搜索标题">
+        <input type="button" id="search-button" value='查询'>
+    </div>
+    <button id="writePost">发帖</button>
+    <div class="dropdown">
+        <div id="user-name-label"></div>
+        <div class="dropdown-content">
+            <a href="" id="homePage">主页</a>
+            <a href="signOut" id="signOut">登出</a>
+        </div>
+    </div>
+</header>
+<main>
+    <div id="content">
+
+    </div>
+</main>
+<script>
+    $(document).ready(function(){
+        //Get请求获取帖子数据
+        $.get("/MessageBoard/printMessages", function(data){
+            let posts = data.posts;
+
+            const content = document.getElementById("content");
+            content.innerHTML = "";
+
+            posts.forEach( post => {
+                const id =post.id;
+
+                const postDiv = document.createElement("div");
+                postDiv.className = "post";
+                post.id = id;
+
+                const title = document.createElement("div");
+                title.className = "post-title";
+                title.textContent = post.title;
+
+                const text = document.createElement("div");
+                text.className = "post-text";
+                text.textContent = post.text;
+
+                const time = document.createElement("div");
+                time.className = "post-time";
+                time.textContent = new Date(post.time).toLocaleDateString();
+
+                const commentsDiv = document.createElement("div");
+                commentsDiv.className = "comments";
+                commentsDiv.id = "comments" + post.id;
+
+                postDiv.appendChild(title);
+                postDiv.appendChild(text);
+                postDiv.appendChild(time);
+
+                //折叠评论按钮
+                let hideButton = document.createElement("button");
+                hideButton.className = "hide";
+                hideButton.id = "hide" + id;
+                hideButton.textContent = "评论";
+                postDiv.appendChild(hideButton);
+
+                //发布评论
+                let writeComment = document.createElement('div');
+                writeComment.className = "writeComment";
+                let commentInput = document.createElement('textarea');
+                commentInput.className = "commentInput";
+                commentInput.id = "input" + id;
+                commentInput.setAttribute("row",2);
+                let commentButton = document.createElement('button');
+                commentButton.className = "commentButton";
+                commentButton.id = "button" + id;
+                commentButton.innerHTML = "发 表<br>评 论";
+                writeComment.appendChild(commentInput);
+                writeComment.appendChild(commentButton);
+                commentsDiv.appendChild(writeComment);
+
+                if (post.comments.length > 0) {
+
+                    post.comments.forEach(comment => {
+                        let commentId = comment.id;
+
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment';
+                        commentDiv.id = 'comment' + commentId;
+                        const commentText = document.createElement('div');
+                        commentText.className = 'comment-text';
+                        commentText.textContent = comment.text;
+                        const commentTime = document.createElement('div');
+                        commentTime.className = 'comment-time';
+                        commentTime.textContent = new Date(comment.time).toLocaleDateString();
+
+                        commentDiv.appendChild(commentText);
+                        commentDiv.appendChild(commentTime);
+                        commentsDiv.appendChild(commentDiv);
+
+                        //删除评论
+                        if(comment.userId == data.userId){
+                            const deleteComment  = document.createElement("button");
+                            deleteComment.textContent = "删除";
+                            deleteComment.className = "deleteComment";
+                            deleteComment.id = "deleteComment" + commentId;
+                            commentTime.appendChild(deleteComment);
+                        }
+                    });
+                }
+
+                postDiv.appendChild(commentsDiv);
+                content.appendChild(postDiv);
+
+                //默认隐藏评论，设置折叠
+                $("#comments" + post.id).hide();
+                $("#hide"+post.id).click(function (){
+                    $("#comments" + post.id).toggle(70);
+                })
+
+                //评论事件
+                $('#button' + id).click(function () {
+                    let input = $('#input' + id).val();
+                    if(input.trim().length > 0) {
+                        $.post('/MessageBoard/addComment',
+                            {
+                                postId: id,
+                                text: input
+                            }, function (data) {
+                                if (data === "success") {
+                                    let commentDiv = document.createElement('div');
+                                    commentDiv.className = 'comment';
+                                    let commentText = document.createElement('div');
+                                    commentText.className = 'comment-text';
+                                    commentText.textContent = $('#input' + id).val();
+                                    let commentTime = document.createElement('div');
+                                    commentTime.className = 'comment-time';
+                                    commentTime.textContent = '刚刚';
+
+                                    $('#input' + id).val('');
+
+                                    commentDiv.appendChild(commentText);
+                                    commentDiv.appendChild(commentTime);
+                                    commentsDiv.appendChild(commentDiv);
+                                } else {
+                                    alert("评论失败");
+                                }
+                            })
+                    }else {
+                        alert("评论内容不能为空");
+                    }
+                })
+            });
+
+            //用户名#ID
+            $("#user-name-label").html(data.username+"#"+data.userId);
+            //主页
+            $("#homePage").attr("href","homePage.html?id="+data.userId);
+        })
+
+        //删除评论事件
+        $(document).on("click", ".deleteComment", function () {
+            const commentId = $(this).attr("id").replace("deleteComment", ""); // 获取评论ID
+            if (confirm("确定要删除该评论吗？")) {
+                $.post("/MessageBoard/deleteComment",
+                    {
+                        commentId: commentId
+                    }, function (data) {
+                    if (data === "success") {
+                        $("#comment" + commentId).remove(); // 删除成功后移除评论
+                    } else {
+                        alert("删除失败，请稍后重试！");
+                    }
+                });
+            }
+        });
+
+        //搜索事件
+        $("#search-button").click(function (){
+            let title = $("#search-input").val();
+            if(title.trim().length > 0){
+                window.location.href = ("searchResult.html?title="+ title)
+            }
+        })
+        //发帖
+        $("#writePost").click(function (){
+            window.location.href = "writePost.html";
+        })
+    })
+</script>
+</body>
+</html>
